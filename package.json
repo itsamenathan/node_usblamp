@@ -1,0 +1,23 @@
+{
+  "name": "node_usblamp",
+  "version": "0.0.1",
+  "description": "Utility to talk to Dream Cheeky USB Mail Light",
+  "main": "index.js",
+  "dependencies": {
+    "node-hid": "^0.3.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itsamenathan/node_usblamp.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/itsamenathan/node_usblamp/issues"
+  },
+  "homepage": "https://github.com/itsamenathan/node_usblamp"
+}
