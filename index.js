@@ -1,18 +1,29 @@
 var HID = require('node-hid');
-
-// parseInt("ff", 17) --> give me int of this hex number
-// >>2 -- bit shift by 2
-
-var red     = [ 0, parseInt("ff", 16)>>2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x25, 0x05 ];
-var green   = [ 0, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x25, 0x05 ];
-var yellow  = [ 0, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x25, 0x05 ];
-var blue    = [ 0, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x25, 0x05 ];
-var magenta = [ 0, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x25, 0x05 ];
-var cyan    = [ 0, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x25, 0x05 ];
-var white   = [ 0, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x25, 0x05 ];
-var off     = [ 0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x25, 0x05 ];
- 
 var light;
+var counter;
+var defaultColors = { 
+      blue    : '0000ff',
+      cyan    : '00ffff',
+      green   : '00ff00',
+      magenta : 'ff00ff',
+      off     : '000000',
+      red     : 'ff0000',
+      white   : 'ffffff',
+      yellow  : 'ffff00',
+    };
+
+
+function hexToRgb(hex) {
+    if (hex in defaultColors){ 
+      hex = defaultColors[hex];
+    }
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16)>>2,
+        g: parseInt(result[2], 16)>>2,
+        b: parseInt(result[3], 16)>>2
+    } : null;
+}
 
 HID.devices().forEach( function(device) {
   if ( device.product.match(/Dream Cheeky/) ) {
@@ -34,8 +45,41 @@ HID.devices().forEach( function(device) {
 });
 
 function sendColor(color) {
-  light.write(red);
-  light.close()
+  var rgb = hexToRgb(color);
+  if (rgb){
+    var data = [ 0, rgb.r, rgb.g, rgb.b, 0x00, 0x00, 0x00, 0x25, 0x05 ];
+    light.write(data);
+  }
 }              
 
-sendColor();
+function blink(delay, count, c1, c2){
+  if(!counter){
+    counter = count;
+  }
+  blinkOn(delay, count, c1, c2);
+}
+
+function blinkOn(delay, count, c1, c2){
+  if(counter > 0){
+    counter--;
+  }
+  else {
+    return;
+  }
+
+  sendColor(c1);
+  setTimeout(function(){
+    blinkOff(delay, count, c1, c2);
+  }, delay);
+}
+
+
+function blinkOff(delay, count, c1, c2){
+  sendColor(c2);
+  setTimeout(function(){
+    blinkOn(delay, count, c1, c2);
+  }, delay);
+}
+
+sendColor(process.argv[2]);
+blink(1000, 2, 'red', 'blue');
